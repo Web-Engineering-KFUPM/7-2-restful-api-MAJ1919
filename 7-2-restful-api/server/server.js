@@ -16,9 +16,39 @@ app.use(express.json());
 await connectDB(process.env.MONGO_URL);
 
 // api/songs (Read all songs)
+app.get("/api/songs", async (req, res) => {
+  try {
+    const rows = await Song.find().sort({ createdAt: -1 });
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
+app.get("/api/songs/:id", async (req, res) => {
+  try {
+    const s = await Song.findById(req.params.id);
+    if (!s) return res.status(404).json({ message: "Song not found" });
+    res.json(s);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // api/songs (Insert song)
+app.post("/api/songs", async (req, res) => {
+  try {
+    const { title = "", artist = "", year } = req.body || {};
+    const created = await Song.create({
+      title: title.trim(),
+      artist: artist.trim(),
+      year
+    });
+    res.status(201).json(created);
+  } catch (err) {
+    res.status(400).json({ message: err.message || "Bad Request" });
+  }
+});
 
 // /api/songs/:id (Update song)
 
